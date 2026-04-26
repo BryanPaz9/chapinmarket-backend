@@ -1,0 +1,213 @@
+{
+  "info": {
+    "_postman_id": "cdb72196-2e4c-4d68-b3d3-eb98ffda61df",
+    "name": "chapin-market-backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "15102233"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": []
+    },
+    {
+      "name": "Productos",
+      "item": [
+        {
+          "name": "Obtener Productos",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"correo\": \"bryanascuc7@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "path": [
+                "chapinmarket-backend",
+                "public",
+                "productos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Producto",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"correo\": \"bryanascuc7@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos/12",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "path": [
+                "chapinmarket-backend",
+                "public",
+                "productos",
+                "12"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Crear Producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Play Station 5 Slim\",\r\n  \"descripcion\": \"Consola de videojuegos Sony Play Station Slim. 1 TB de almacenamiento.\",\r\n  \"precio\": \"6000\",\r\n  \"stock\": \"5\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/Y2Y1NDNiZj_579-500x500.png\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "path": [
+                "chapinmarket-backend",
+                "public",
+                "productos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar Producto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Play Station 5 Slim\",\r\n  \"descripcion\": \"Consola de videojuegos Sony Play Station Slim. 1 TB de almacenamiento.\",\r\n  \"precio\": \"5500\",\r\n  \"stock\": \"5\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/Y2Y1NDNiZj_579-500x500.png\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos/12",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "path": [
+                "chapinmarket-backend",
+                "public",
+                "productos",
+                "12"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Producto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Play Station 5 Slim\",\r\n  \"descripcion\": \"Consola de videojuegos Sony Play Station Slim. 1 TB de almacenamiento.\",\r\n  \"precio\": \"5000\",\r\n  \"stock\": \"5\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/Y2Y1NDNiZj_579-500x500.png\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos/11",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "path": [
+                "chapinmarket-backend",
+                "public",
+                "productos",
+                "11"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
