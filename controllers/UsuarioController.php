@@ -27,22 +27,85 @@ class UsuarioController {
     }
 
     public function store() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $this->register();
+    }
 
-        if (!$data || !isset($data['nombre'])) {
-            Response::error("Datos inválidos", 400);
+    public function register() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $contrasena = $data['contrasena'] ?? $data['password'] ?? null;
+
+        if (!$data || empty($data['nombre']) || empty($data['correo']) || empty($contrasena)) {
+            Response::error("Datos invalidos", 400);
         }
 
+        if ($this->model->getByCorreo($data['correo'])) {
+            Response::error("El correo ya esta registrado", 409);
+        }
+
+        $data['contrasena'] = $contrasena;
+        $data['es_admin'] = 0;
         $this->model->create($data);
 
-        Response::success(null, "Usuario creado", 201);
+        Response::success(null, "Usuario registrado", 201);
+    }
+
+    public function login() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $contrasena = $data['contrasena'] ?? $data['password'] ?? null;
+
+        if (!$data || empty($data['correo']) || empty($contrasena)) {
+            Response::error("Datos invalidos", 400);
+        }
+
+        $usuario = $this->model->validarCredenciales($data['correo'], $contrasena);
+
+        if (!$usuario) {
+            Response::error("Credenciales invalidas", 401);
+        }
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION['usuario'] = [
+            "id" => $usuario['ID'],
+            "correo" => $usuario['CORREO'],
+            "es_admin" => $usuario['ES_ADMIN'] ?? 0
+        ];
+
+        Response::success($usuario, "Login exitoso");
+    }
+
+    public function logout() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION = [];
+
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params["path"],
+                $params["domain"],
+                $params["secure"],
+                $params["httponly"]
+            );
+        }
+
+        session_destroy();
+
+        Response::success(null, "Logout exitoso");
     }
 
     public function update($id) {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data) {
-            Response::error("Datos inválidos", 400);
+            Response::error("Datos invalidos", 400);
         }
 
         $this->model->update($id, $data);

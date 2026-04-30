@@ -21,10 +21,15 @@ $router->add('POST', '/categorias', fn() => $categoria->store());
 $router->add('PUT', '/categorias/{id}', fn($id) => $categoria->update($id));
 $router->add('DELETE', '/categorias/{id}', fn($id) => $categoria->delete($id));
 
+/**     AUTH             */
+$router->add('POST', '/sign-up', fn() => $usuario->register());
+$router->add('POST', '/login', fn() => $usuario->login());
+$router->add('POST', '/logout', fn() => $usuario->logout());
+
 /**     USUARIOS        */
 $router->add('GET', '/usuarios', fn() => $usuario->index());
 $router->add('GET', '/usuarios/{id}', fn($id) => $usuario->show($id));
-
+$router->add('PUT', '/usuarios/{id}', fn($id) => $usuario->update($id));
 
 /**     PRODUCTOS       */
 $router->add('GET', '/productos', fn() => $producto->index());
@@ -33,10 +38,18 @@ $router->add('POST', '/productos', fn() => $producto->store());
 $router->add('PUT', '/productos/{id}', fn($id) => $producto->update($id));
 $router->add('DELETE', '/productos/{id}', fn($id) => $producto->delete($id));
 /**     TARJETAS        */
+
 $router->add('GET', '/tarjetas', fn() => $tarjeta->index());
 $router->add('GET', '/tarjetas/{id}', fn($id) => $tarjeta->show($id));
+$router->add('POST', '/tarjetas', fn() => $tarjeta->store());
+$router->add('PUT', '/tarjetas/{id}', fn($id) => $tarjeta->update($id));
+$router->add('DELETE', '/tarjetas/{id}', fn($id) => $tarjeta->delete($id));
 /**     Temporadas      */
 $router->add('GET', '/temporadas', fn() => $temporada->index());
 $router->add('GET', '/temporadas/{id}', fn($id) => $tarjeta->show($id));
 /**     Carrito         */
+/**
+ * CRUD COMPLETO
+ */
+
 return $router;

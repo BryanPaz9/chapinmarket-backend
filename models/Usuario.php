@@ -23,27 +23,64 @@ class Usuario extends BaseModel {
         return $result ?: null; // 👈 aquí
     }
 
+
+
+    public function getByCorreo($correo) {
+        $sql = "SELECT * FROM usuarios WHERE correo = :correo";
+        $stid = $this->execute($sql, [":correo" => $correo]);
+
+        $result = oci_fetch_assoc($stid);
+
+        return $result ?: null;
+    }
+
     public function create($data) {
-        $sql = "INSERT INTO usuarios (nombre, padre_id)
-                VALUES (:nombre, :padre_id)";
+        $sql = "INSERT INTO usuarios (nombre, correo, contrasena, direccion, es_admin)
+                VALUES (:nombre, :correo, :contrasena, :direccion, :es_admin)";
 
         $this->execute($sql, [
             ":nombre" => $data['nombre'],
-            ":padre_id" => $data['padre_id']
+            ":correo" => $data['correo'],
+            ":contrasena" => password_hash($data['contrasena'], PASSWORD_DEFAULT),
+            ":direccion" => $data['direccion'] ?? null,
+            ":es_admin" => $data['es_admin'] ?? 0
         ]);
 
         return true;
     }
 
+    public function validarCredenciales($correo, $contrasena) {
+        $usuario = $this->getByCorreo($correo);
+
+        if (!$usuario || !isset($usuario['CONTRASENA'])) {
+            return null;
+        }
+
+        $contrasenaGuardada = $usuario['CONTRASENA'];
+        $infoHash = password_get_info($contrasenaGuardada);
+        $esValida = password_verify($contrasena, $contrasenaGuardada)
+            || ($infoHash['algo'] === 0 && hash_equals($contrasenaGuardada, $contrasena));
+
+        if (!$esValida) {
+            return null;
+        }
+
+        unset($usuario['CONTRASENA']);
+
+        return $usuario;
+    }
+
     public function update($id, $data) {
         $sql = "UPDATE usuarios
                 SET nombre = :nombre,
-                    padre_id = :padre_id
+                    correo = :correo,
+                    direccion = :direccion
                 WHERE id = :id";
 
         $this->execute($sql, [
             ":nombre" => $data['nombre'],
-            ":padre_id" => $data['padre_id'],
+            ":correo" => $data['correo'],
+            ":direccion" => $data['direccion'],
             ":id" => $id
         ]);
 
