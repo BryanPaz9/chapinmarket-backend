@@ -43,6 +43,7 @@ class UsuarioController {
         }
 
         $data['contrasena'] = $contrasena;
+        $data['direccion'] = $data['direccion'] ?? null;
         $data['es_admin'] = 0;
         $this->model->create($data);
 
@@ -63,6 +64,8 @@ class UsuarioController {
             Response::error("Credenciales invalidas", 401);
         }
 
+        $usuario['DIRECCION'] = $usuario['DIRECCION'] ?? null;
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -70,10 +73,11 @@ class UsuarioController {
         $_SESSION['usuario'] = [
             "id" => $usuario['ID'],
             "correo" => $usuario['CORREO'],
+            "direccion" => $usuario['DIRECCION'],
             "es_admin" => $usuario['ES_ADMIN'] ?? 0
         ];
 
-        Response::success($usuario, "Login exitoso");
+        Response::success($usuario, "Bienvenido " . $usuario['NOMBRE']);
     }
 
     public function logout() {
