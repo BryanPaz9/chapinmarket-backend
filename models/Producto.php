@@ -6,7 +6,7 @@ class Producto extends BaseModel
 
     public function getAll()
     {
-        $sql = "SELECT * FROM productos WHERE STOCK >0";
+        $sql = "SELECT * FROM productos";
         $stid = $this->execute($sql);
 
         $data = [];

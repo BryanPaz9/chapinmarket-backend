@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../models/Usuario.php';
 require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/Password.php';
 require_once __DIR__ . '/../config/database.php';
 
 class AuthController
@@ -44,12 +45,12 @@ class AuthController
             Response::error("Credenciales incorrectas", 401);
         }
 
-        $passwordValida = ($usuario['CONTRASENA'] === $password);
-        if (!$passwordValida && function_exists('password_verify')) {
-            $passwordValida = password_verify($password, $usuario['CONTRASENA']);
-        }
-        if (!$passwordValida) {
+        if (!Password::verify($password, $usuario['CONTRASENA'])) {
             Response::error("Credenciales incorrectas", 401);
+        }
+
+        if (Password::needsRehash($usuario['CONTRASENA'])) {
+            $this->actualizarContrasena((int)$usuario['ID'], $password);
         }
 
         // Obtener tarjetas del usuario
@@ -124,6 +125,12 @@ class AuthController
         $password = $data['password'];
         $direccion = $data['direccion'] ?? null;
 
+        if (strlen($password) < 6) {
+            Response::error("La contraseÃ±a debe tener al menos 6 caracteres", 400);
+        }
+
+        $passwordHash = Password::hash($password);
+
         // Verificar si el correo ya existe
         $checkSql  = "SELECT id FROM usuarios WHERE correo = :p_correo";
         $checkStid = oci_parse($this->conn, $checkSql);
@@ -138,7 +145,7 @@ class AuthController
         $stid = oci_parse($this->conn, $sql);
         oci_bind_by_name($stid, ":p_nombre",    $nombre);
         oci_bind_by_name($stid, ":p_correo",    $correo);
-        oci_bind_by_name($stid, ":p_contrasena", $password);
+        oci_bind_by_name($stid, ":p_contrasena", $passwordHash);
         oci_bind_by_name($stid, ":p_direccion", $direccion);
         $esAdmin = 0;
         oci_bind_by_name($stid, ":p_es_admin",  $esAdmin);
@@ -177,6 +184,49 @@ class AuthController
         ];
 
         Response::success($usuario, "Usuario registrado exitosamente", 201);
+    }
+
+    /**
+     * POST /auth/cambiar-password
+     */
+    public function cambiarPassword()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!$data || !isset($data['passwordActual']) || !isset($data['passwordNueva'])) {
+            Response::error("ContraseÃ±a actual y nueva son requeridas", 400);
+        }
+
+        if (strlen($data['passwordNueva']) < 6) {
+            Response::error("La nueva contraseÃ±a debe tener al menos 6 caracteres", 400);
+        }
+
+        $usuarioId = $_SESSION['usuario_id'] ?? $data['usuarioId'] ?? $data['usuario_id'] ?? null;
+        if (!$usuarioId) {
+            Response::error("Usuario no autenticado o usuarioId no enviado", 401);
+        }
+
+        $sql  = "SELECT id, contrasena FROM usuarios WHERE id = :p_id";
+        $stid = oci_parse($this->conn, $sql);
+        oci_bind_by_name($stid, ":p_id", $usuarioId, -1, SQLT_INT);
+
+        if (!oci_execute($stid)) {
+            $e = oci_error($stid);
+            Response::error("Error en base de datos: " . $e['message'], 500);
+        }
+
+        $usuario = oci_fetch_assoc($stid);
+        if (!$usuario) {
+            Response::error("Usuario no encontrado", 404);
+        }
+
+        if (!Password::verify($data['passwordActual'], $usuario['CONTRASENA'])) {
+            Response::error("La contraseÃ±a actual es incorrecta", 401);
+        }
+
+        $this->actualizarContrasena((int)$usuario['ID'], $data['passwordNueva']);
+
+        Response::success(null, "ContraseÃ±a actualizada correctamente");
     }
 
     public function me()
@@ -260,5 +310,18 @@ class AuthController
     {
         session_destroy();
         Response::success(null, "Sesión cerrada correctamente");
+    }
+    private function actualizarContrasena($usuarioId, $password)
+    {
+        $passwordHash = Password::hash($password);
+        $sql  = "UPDATE usuarios SET contrasena = :p_contrasena WHERE id = :p_id";
+        $stid = oci_parse($this->conn, $sql);
+        oci_bind_by_name($stid, ":p_contrasena", $passwordHash);
+        oci_bind_by_name($stid, ":p_id", $usuarioId, -1, SQLT_INT);
+
+        if (!oci_execute($stid)) {
+            $e = oci_error($stid);
+            Response::error("Error al actualizar contraseÃ±a: " . $e['message'], 500);
+        }
     }
 }

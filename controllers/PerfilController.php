@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/Password.php';
 require_once __DIR__ . '/../config/database.php';
 
 class PerfilController
@@ -149,18 +150,11 @@ class PerfilController
             Response::error("Usuario no encontrado", 404);
         }
 
-        $contrasenaActual = $usuario['CONTRASENA'];
-        $passwordValida   = ($contrasenaActual === $data['passwordActual']);
-
-        if (!$passwordValida && function_exists('password_verify')) {
-            $passwordValida = password_verify($data['passwordActual'], $contrasenaActual);
-        }
-
-        if (!$passwordValida) {
+        if (!Password::verify($data['passwordActual'], $usuario['CONTRASENA'])) {
             Response::error("La contraseña actual es incorrecta", 401);
         }
 
-        $nuevaPassword = $data['passwordNueva'];
+        $nuevaPassword = Password::hash($data['passwordNueva']);
         $sql  = "UPDATE usuarios SET contrasena = :p_contrasena WHERE id = :p_id";
         $stid = oci_parse($this->conn, $sql);
         oci_bind_by_name($stid, ":p_contrasena", $nuevaPassword);
