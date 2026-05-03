@@ -20,7 +20,7 @@ class Categoria extends BaseModel {
 
         $result = oci_fetch_assoc($stid);
 
-        return $result ?: null;
+        return $result ?: null; // 👈 aquí
     }
 
     public function create($data) {

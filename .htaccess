@@ -1,3 +1,15 @@
+# Habilitar errores detallados
+php_flag display_errors on
+php_flag display_startup_errors on
+php_value error_reporting E_ALL
+
+# Deshabilitar caché para desarrollo
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</IfModule>
+
 RewriteEngine On
 RewriteBase /chapinmarket-backend/public/
 

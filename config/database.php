@@ -22,7 +22,6 @@ class Database {
             if (!self::$conn) {
                 $e = oci_error();
 
-                // Manejo consistente de errores
                 self::handleError($e);
             }
         }

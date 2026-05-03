@@ -8,101 +8,7 @@
   "item": [
     {
       "name": "Auth",
-      "item": [
-        {
-          "name": "Registrar",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Demo\",\r\n  \"correo\": \"correo@demo.com\",\r\n  \"password\": \"123456\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/sign-up",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "sign-up"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Login",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"correo\": \"correo@demo.com\",\r\n  \"password\": \"123456\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/login",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/logout",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "logout"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
+      "item": []
     },
     {
       "name": "Productos",
@@ -123,7 +29,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "",
+              "raw": "{\r\n  \"correo\": \"bryanascuc7@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -163,7 +69,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "",
+              "raw": "{\r\n  \"correo\": \"bryanascuc7@gmail.com\",\r\n  \"password\": \"123456\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -171,7 +77,7 @@
               }
             },
             "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/productos/13",
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos/12",
               "host": [
                 "127",
                 "0",
@@ -182,7 +88,7 @@
                 "chapinmarket-backend",
                 "public",
                 "productos",
-                "13"
+                "12"
               ]
             }
           },
@@ -201,7 +107,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Xbox Series X\",\r\n  \"descripcion\": \"Consola de videojuegos Microsoft.\",\r\n  \"precio\": \"5500\",\r\n  \"stock\": \"10\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/NWQ0OWJhOW-500x500.jpg\"\r\n}",
+              "raw": "{\r\n  \"nombre\": \"Play Station 5 Slim\",\r\n  \"descripcion\": \"Consola de videojuegos Sony Play Station Slim. 1 TB de almacenamiento.\",\r\n  \"precio\": \"6000\",\r\n  \"stock\": \"5\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/Y2Y1NDNiZj_579-500x500.png\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -238,7 +144,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Xbox Series X\",\r\n  \"descripcion\": \"Consola de videojuegos Microsoft.\",\r\n  \"precio\": \"6500\",\r\n  \"stock\": \"10\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/NWQ0OWJhOW-500x500.jpg\"\r\n}",
+              "raw": "{\r\n  \"nombre\": \"Play Station 5 Slim\",\r\n  \"descripcion\": \"Consola de videojuegos Sony Play Station Slim. 1 TB de almacenamiento.\",\r\n  \"precio\": \"5500\",\r\n  \"stock\": \"5\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/Y2Y1NDNiZj_579-500x500.png\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -246,7 +152,7 @@
               }
             },
             "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/productos/13",
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos/12",
               "host": [
                 "127",
                 "0",
@@ -257,7 +163,7 @@
                 "chapinmarket-backend",
                 "public",
                 "productos",
-                "13"
+                "12"
               ]
             }
           },
@@ -276,7 +182,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "",
+              "raw": "{\r\n  \"nombre\": \"Play Station 5 Slim\",\r\n  \"descripcion\": \"Consola de videojuegos Sony Play Station Slim. 1 TB de almacenamiento.\",\r\n  \"precio\": \"5000\",\r\n  \"stock\": \"5\",\r\n  \"imagenes\": \"https://cdn.pacifiko.com/image/cache/catalog/p/Y2Y1NDNiZj_579-500x500.png\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -284,7 +190,7 @@
               }
             },
             "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/productos/13",
+              "raw": "127.0.0.1/chapinmarket-backend/public/productos/11",
               "host": [
                 "127",
                 "0",
@@ -295,529 +201,7 @@
                 "chapinmarket-backend",
                 "public",
                 "productos",
-                "13"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Categorias",
-      "item": [
-        {
-          "name": "Obtener Categorias",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/categorias",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "categorias"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Buscar Categoria",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/categorias/12",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "categorias",
-                "12"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Crear Categoria",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Prueba\",\r\n  \"padre_id\": \"12\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/categorias",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "categorias"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar Categoria",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Pantalones para tiendas\",\r\n  \"padre_id\": \"20\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/categorias/12",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "categorias",
-                "12"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Eliminar Categoria",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/categorias/11",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "categorias",
                 "11"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Tarjetas",
-      "item": [
-        {
-          "name": "Obtener Tarjetas",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/tarjetas",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "tarjetas"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Buscar Tarjeta",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/tarjetas/3",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "tarjetas",
-                "3"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Crear Tarjeta",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"titular\": \"Juan Perez\",\r\n  \"numero\": \"4111111111111111\",\r\n  \"vencimiento\": \"12/28\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/tarjetas",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "tarjetas"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar Tarjeta",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"titular\": \"Juanito Perez\",\r\n  \"numero\": \"4111111111118850\",\r\n  \"vencimiento\": \"12/30\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/tarjetas/3",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "tarjetas",
-                "3"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Eliminar Tarjeta",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/tarjetas/1",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "tarjetas",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Usuarios",
-      "item": [
-        {
-          "name": "Obtener Usuarios",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/usuarios",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "usuarios"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Buscar Usuarios",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/usuarios/1",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "usuarios",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar Usuario",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"nombre\": \"Bryger Prueba\",\r\n  \"correo\": \"bgascuc@gmail.net\",\r\n  \"direccion\": \"Ciudad República\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "127.0.0.1/chapinmarket-backend/public/usuarios/1",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "path": [
-                "chapinmarket-backend",
-                "public",
-                "usuarios",
-                "1"
               ]
             }
           },
