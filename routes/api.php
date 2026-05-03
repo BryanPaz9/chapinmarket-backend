@@ -8,6 +8,7 @@ require_once __DIR__ . '/../controllers/UsuarioController.php';
 require_once __DIR__ . '/../controllers/CarritoController.php';
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/PerfilController.php';
+require_once __DIR__ . '/../controllers/PagoController.php';
 
 $router = new Router();
 
@@ -23,6 +24,9 @@ $router->add('GET', '/auth/me', function () {
 });
 $router->add('POST', '/auth/logout', function () {
     (new AuthController())->logout();
+});
+$router->add('POST', '/auth/cambiar-password', function () {
+    (new AuthController())->cambiarPassword();
 });
 
 // ========== PERFIL DE USUARIO ==========
@@ -172,6 +176,11 @@ $router->add('POST', '/carrito/migrate', function () {
 });
 $router->add('PUT', '/carrito/decrementar/{id}', function ($id) {
     (new CarritoController())->decrementar($id);
+});
+
+// ========== PAGO ==========
+$router->add('POST', '/pago', function () {
+    (new PagoController())->procesar();
 });
 
 // ========== IMÁGENES ==========
