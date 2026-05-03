@@ -9,6 +9,7 @@ require_once __DIR__ . '/../controllers/CarritoController.php';
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/PerfilController.php';
 require_once __DIR__ . '/../controllers/PagoController.php';
+require_once __DIR__ . '/../controllers/PedidoController.php';
 
 $router = new Router();
 
@@ -184,6 +185,14 @@ $router->add('POST', '/pago', function () {
 });
 
 // ========== IMÁGENES ==========
+$router->add('GET', '/pedidos', function () {
+    (new PedidoController())->index();
+});
+
+$router->add('GET', '/pedidos/{id}', function ($id) {
+    (new PedidoController())->show($id);
+});
+
 $router->add('GET', '/imagenes/{filename}', function ($filename) {
     $filePath = __DIR__ . '/../uploads/' . $filename;
     if (file_exists($filePath)) {
