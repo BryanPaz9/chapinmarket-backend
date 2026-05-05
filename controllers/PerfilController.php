@@ -305,36 +305,71 @@ class PerfilController
             oci_execute($stidReset);
         }
 
-        $etiqueta         = !empty($data['etiqueta'])      ? trim($data['etiqueta'])      : 'Casa';
-        $linea1           = !empty($data['linea1'])         ? trim($data['linea1'])        : '';
-        $linea2           = !empty($data['linea2'])         ? trim($data['linea2'])        : '';
-        $ciudad           = !empty($data['ciudad'])         ? trim($data['ciudad'])        : 'Ciudad de Guatemala';
-        $departamento     = !empty($data['departamento'])   ? trim($data['departamento'])  : 'Guatemala';
-        $codigoPostal     = !empty($data['codigoPostal'])   ? trim($data['codigoPostal'])  : '';
-        $esPredeterminada = (!empty($data['esPredeterminada'])) ? 1 : 0;
+        // Construir actualización dinámica – solo los campos recibidos
+        $campos = [];
+        $bindParams = [':p_id' => $id, ':p_uid' => $usuarioId];
 
-        $sql  = "UPDATE direcciones SET 
-                    etiqueta = :p_etiqueta, linea1 = :p_linea1, linea2 = :p_linea2,
-                    ciudad = :p_ciudad, departamento = :p_departamento,
-                    codigo_postal = :p_codigoPostal, es_predeterminada = :p_esPredeterminada
-                 WHERE id = :p_id AND usuario_id = :p_uid";
+        if (isset($data['etiqueta'])) {
+            $etiqueta = trim($data['etiqueta']) ?: 'Casa';
+            $campos[] = "etiqueta = :p_etiqueta";
+            $bindParams[':p_etiqueta'] = $etiqueta;
+        }
+        if (isset($data['linea1'])) {
+            $linea1 = trim($data['linea1']);
+            if ($linea1 === '') {
+                Response::error("La línea 1 de la dirección no puede estar vacía", 400);
+            }
+            $campos[] = "linea1 = :p_linea1";
+            $bindParams[':p_linea1'] = $linea1;
+        }
+        if (isset($data['linea2'])) {
+            $linea2 = trim($data['linea2']);
+            $campos[] = "linea2 = :p_linea2";
+            $bindParams[':p_linea2'] = $linea2;
+        }
+        if (isset($data['ciudad'])) {
+            $ciudad = trim($data['ciudad']) ?: 'Ciudad de Guatemala';
+            $campos[] = "ciudad = :p_ciudad";
+            $bindParams[':p_ciudad'] = $ciudad;
+        }
+        if (isset($data['departamento'])) {
+            $departamento = trim($data['departamento']) ?: 'Guatemala';
+            $campos[] = "departamento = :p_departamento";
+            $bindParams[':p_departamento'] = $departamento;
+        }
+        if (isset($data['codigoPostal'])) {
+            $codigoPostal = trim($data['codigoPostal']);
+            $campos[] = "codigo_postal = :p_codigoPostal";
+            $bindParams[':p_codigoPostal'] = $codigoPostal;
+        }
+        if (isset($data['esPredeterminada'])) {
+            $esPredeterminada = !empty($data['esPredeterminada']) ? 1 : 0;
+            $campos[] = "es_predeterminada = :p_esPredeterminada";
+            $bindParams[':p_esPredeterminada'] = $esPredeterminada;
+
+            if ($esPredeterminada) {
+                // Quitar predeterminada actual (si se pide)
+                $sqlReset = "UPDATE direcciones SET es_predeterminada = 0 WHERE usuario_id = :p_uid_reset";
+                $stidReset = oci_parse($this->conn, $sqlReset);
+                oci_bind_by_name($stidReset, ":p_uid_reset", $usuarioId, -1, SQLT_INT);
+                @oci_execute($stidReset);
+            }
+        }
+
+        if (empty($campos)) {
+            Response::error("No hay campos para actualizar", 400);
+        }
+
+        $sql = "UPDATE direcciones SET " . implode(', ', $campos) . " WHERE id = :p_id AND usuario_id = :p_uid";
         $stid = oci_parse($this->conn, $sql);
-
-        oci_bind_by_name($stid, ":p_etiqueta",         $etiqueta,         50, SQLT_CHR);
-        oci_bind_by_name($stid, ":p_linea1",           $linea1,          300, SQLT_CHR);
-        oci_bind_by_name($stid, ":p_linea2",           $linea2,          300, SQLT_CHR);
-        oci_bind_by_name($stid, ":p_ciudad",           $ciudad,          100, SQLT_CHR);
-        oci_bind_by_name($stid, ":p_departamento",     $departamento,    100, SQLT_CHR);
-        oci_bind_by_name($stid, ":p_codigoPostal",     $codigoPostal,     20, SQLT_CHR);
-        oci_bind_by_name($stid, ":p_esPredeterminada", $esPredeterminada, -1, SQLT_INT);
-        oci_bind_by_name($stid, ":p_id",               $id,              -1, SQLT_INT);
-        oci_bind_by_name($stid, ":p_uid",              $usuarioId,       -1, SQLT_INT);
+        foreach ($bindParams as $key => $value) {
+            oci_bind_by_name($stid, $key, $bindParams[$key]);
+        }
 
         if (!oci_execute($stid)) {
             $e = oci_error($stid);
             Response::error("Error al actualizar dirección: " . $e['message'], 500);
         }
-
         Response::success(null, "Dirección actualizada correctamente");
     }
 
@@ -456,6 +491,7 @@ class PerfilController
     {
         $usuarioId = $this->getUsuarioId();
 
+        // Verificar propiedad
         $checkSql  = "SELECT id FROM tarjetas WHERE id = :p_id AND usuario_id = :p_uid";
         $checkStid = oci_parse($this->conn, $checkSql);
         oci_bind_by_name($checkStid, ":p_id",  $id, -1, SQLT_INT);
@@ -465,6 +501,16 @@ class PerfilController
             Response::error("Tarjeta no encontrada", 404);
         }
 
+        // Verificar si hay transacciones asociadas
+        $checkTransSql = "SELECT COUNT(*) AS cnt FROM transacciones WHERE tarjeta_id = :p_tid";
+        $checkTransStid = oci_parse($this->conn, $checkTransSql);
+        oci_bind_by_name($checkTransStid, ":p_tid", $id, -1, SQLT_INT);
+        oci_execute($checkTransStid);
+        $row = oci_fetch_assoc($checkTransStid);
+        if ($row && $row['CNT'] > 0) {
+            Response::error("No se puede eliminar la tarjeta porque tiene transacciones asociadas. Considera desvincularla en lugar de borrarla.", 409);
+        }
+
         $sql  = "DELETE FROM tarjetas WHERE id = :p_id AND usuario_id = :p_uid";
         $stid = oci_parse($this->conn, $sql);
         oci_bind_by_name($stid, ":p_id",  $id,        -1, SQLT_INT);
@@ -472,7 +518,11 @@ class PerfilController
 
         if (!oci_execute($stid)) {
             $e = oci_error($stid);
-            Response::error("Error al eliminar tarjeta: " . $e['message'], 500);
+            // Si aun así falla por integridad, devolver 409
+            if (isset($e['code']) && $e['code'] == 2292) {
+                Response::error("No se puede eliminar la tarjeta porque tiene transacciones asociadas.", 409);
+            }
+            Response::error("Error al eliminar tarjeta: " . ($e['message'] ?? 'error'), 500);
         }
 
         Response::success(null, "Tarjeta eliminada correctamente");

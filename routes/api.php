@@ -10,6 +10,7 @@ require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/PerfilController.php';
 require_once __DIR__ . '/../controllers/PagoController.php';
 require_once __DIR__ . '/../controllers/PedidoController.php';
+require_once __DIR__ . '/../controllers/FavoritoController.php';
 
 $router = new Router();
 
@@ -182,6 +183,17 @@ $router->add('PUT', '/carrito/decrementar/{id}', function ($id) {
 // ========== PAGO ==========
 $router->add('POST', '/pago', function () {
     (new PagoController())->procesar();
+});
+
+// ========== FAVORITOS ==========
+$router->add('GET', '/favoritos', function () {
+    (new FavoritoController())->index();
+});
+$router->add('POST', '/favoritos', function () {
+    (new FavoritoController())->store();
+});
+$router->add('DELETE', '/favoritos/{id}', function ($id) {
+    (new FavoritoController())->destroy($id);
 });
 
 // ========== IMÁGENES ==========

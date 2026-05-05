@@ -1,5 +1,4 @@
 <?php
-// Agregar esto para ver errores detallados
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -67,7 +66,7 @@ register_shutdown_function(function () {
     }
 });
 
-$router = require_once __DIR__ . '/../routes/api.php';
+$router = require __DIR__ . '/../routes/api.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
