@@ -71,6 +71,11 @@ $router->add('DELETE', '/perfil/tarjetas/{id}', function ($id) {
 $router->add('GET', '/categorias', function () {
     (new CategoriaController())->index();
 });
+
+$router->add('GET', '/categorias/destacadas', function () {
+    (new CategoriaController())->destacadas();
+});
+
 $router->add('GET', '/categorias/{id}', function ($id) {
     (new CategoriaController())->show($id);
 });

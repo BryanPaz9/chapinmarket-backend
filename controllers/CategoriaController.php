@@ -2,21 +2,25 @@
 require_once __DIR__ . '/../models/Categoria.php';
 require_once __DIR__ . '/../core/Response.php';
 
-class CategoriaController {
+class CategoriaController
+{
 
     private $model;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->model = new Categoria();
     }
 
-    public function index() {
+    public function index()
+    {
         $data = $this->model->getAll();
 
         Response::success($data, "Categorías obtenidas");
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $data = $this->model->getById($id);
 
         if (!$data) {
@@ -26,7 +30,8 @@ class CategoriaController {
         Response::success($data, "Categoría obtenida");
     }
 
-    public function store() {
+    public function store()
+    {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data || !isset($data['nombre'])) {
@@ -38,7 +43,8 @@ class CategoriaController {
         Response::success(null, "Categoría creada", 201);
     }
 
-    public function update($id) {
+    public function update($id)
+    {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (!$data) {
@@ -50,9 +56,16 @@ class CategoriaController {
         Response::success(null, "Categoría actualizada");
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         $this->model->delete($id);
 
         Response::success(null, "Categoría eliminada");
+    }
+
+    public function destacadas()
+    {
+        $data = $this->model->getRandomCategories(6);
+        Response::success($data, "Categorías destacadas obtenidas");
     }
 }
