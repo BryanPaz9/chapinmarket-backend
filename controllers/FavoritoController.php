@@ -45,7 +45,6 @@ class FavoritoController
         if (isset($_SESSION['usuario_id'])) {
             return (int)$_SESSION['usuario_id'];
         }
-        // Fallback para desarrollo
         if (isset($_GET['uid'])) {
             return (int)$_GET['uid'];
         }

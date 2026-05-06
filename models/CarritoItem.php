@@ -2,10 +2,7 @@
 require_once 'BaseModel.php';
 
 class CarritoItem extends BaseModel {
-    
-    /**
-     * Obtiene un item específico del carrito
-     */
+
     public function getById($id) {
         $sql = "SELECT ci.*, p.nombre, p.precio, p.stock
                 FROM carrito_items ci
@@ -33,9 +30,6 @@ class CarritoItem extends BaseModel {
         return null;
     }
     
-    /**
-     * Verifica si un producto ya está en el carrito
-     */
     public function existsInCart($carritoId, $productoId) {
         $sql = "SELECT COUNT(*) as count FROM carrito_items 
                 WHERE carrito_id = :carrito_id AND producto_id = :producto_id";

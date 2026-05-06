@@ -36,7 +36,6 @@ class Direccion extends BaseModel
 
     public function create($data)
     {
-        // Si es predeterminada, quitar predeterminada de las demás
         if (!empty($data['esPredeterminada'])) {
             $sql = "UPDATE direcciones SET es_predeterminada = 0 WHERE usuario_id = :usuario_id";
             $this->execute($sql, [":usuario_id" => $data['usuarioId']]);
@@ -61,7 +60,6 @@ class Direccion extends BaseModel
 
     public function update($id, $data)
     {
-        // Si se marca como predeterminada
         if (!empty($data['esPredeterminada'])) {
             $dir = $this->getById($id);
             if ($dir) {

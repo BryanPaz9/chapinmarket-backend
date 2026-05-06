@@ -20,9 +20,6 @@ class Favorito extends BaseModel
         return $favoritos;
     }
 
-    /**
-     * Agrega un producto a favoritos (si ya existe, no hace nada).
-     */
     public function add($usuarioId, $productoId)
     {
         // Verificar si ya existe
@@ -44,9 +41,6 @@ class Favorito extends BaseModel
         return true;
     }
 
-    /**
-     * Elimina un producto de favoritos.
-     */
     public function remove($usuarioId, $productoId)
     {
         $sql = "DELETE FROM favoritos WHERE usuario_id = :p_uid AND producto_id = :p_pid";

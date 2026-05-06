@@ -10,15 +10,11 @@ class CarritoController
     {
         $this->model = new Carrito();
 
-        // Iniciar sesión para carritos anónimos
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
     }
 
-    /**
-     * GET /carrito - Obtener todos los items del carrito
-     */
     public function index()
     {
         try {
@@ -38,9 +34,6 @@ class CarritoController
         }
     }
 
-    /**
-     * POST /carrito - Agregar producto al carrito
-     */
     public function store()
     {
         try {
@@ -70,9 +63,6 @@ class CarritoController
         }
     }
 
-    /**
-     * PUT /carrito - Actualizar cantidad o selección de un producto
-     */
     public function update()
     {
         try {
@@ -86,11 +76,9 @@ class CarritoController
             $usuarioId = $data['usuarioId'] ?? $this->getCurrentUserId();
             $carrito = $this->model->getOrCreateCart($usuarioId);
 
-            // Determinar qué actualizar
             if (isset($data['cantidad'])) {
                 $cantidad = (int)$data['cantidad'];
                 if ($cantidad <= 0) {
-                    // Si la cantidad es 0 o negativa, eliminar el producto
                     $this->model->removeItem($carrito['id'], $productoId);
                 } else {
                     $this->model->updateItemQuantity($carrito['id'], $productoId, $cantidad);
@@ -102,7 +90,6 @@ class CarritoController
                 $this->model->updateItemSelection($carrito['id'], $productoId, $seleccionado);
             }
 
-            // Retornar carrito actualizado
             $items = $this->model->getCartItems($carrito['id']);
             $summary = $this->model->getCartSummary($carrito['id']);
 
@@ -116,17 +103,12 @@ class CarritoController
         }
     }
 
-    /**
-     * DELETE /carrito - Eliminar items del carrito
-     */
     public function delete()
     {
         try {
             $data = json_decode(file_get_contents("php://input"), true);
             $usuarioId = $data['usuarioId'] ?? $this->getCurrentUserId();
             $carrito = $this->model->getOrCreateCart($usuarioId);
-
-            // Si se especifica productoId, eliminar solo ese producto
             if (isset($data['productoId'])) {
                 $productoId = (int)$data['productoId'];
                 $this->model->removeItem($carrito['id'], $productoId);
@@ -137,13 +119,10 @@ class CarritoController
                 $this->model->clearSelectedItems($carrito['id']);
                 $message = "Productos seleccionados eliminados del carrito";
             }
-            // Si no, vaciar todo el carrito
             else {
                 $this->model->clearCart($carrito['id']);
                 $message = "Carrito vaciado correctamente";
             }
-
-            // Retornar carrito actualizado
             $items = $this->model->getCartItems($carrito['id']);
             $summary = $this->model->getCartSummary($carrito['id']);
 
@@ -157,9 +136,6 @@ class CarritoController
         }
     }
 
-    /**
-     * POST /carrito/migrate - Migrar carrito anónimo a usuario logueado
-     */
     public function migrate()
     {
         try {
@@ -193,9 +169,6 @@ class CarritoController
         }
     }
 
-    /**
-     * GET /carrito/resumen - Obtener solo el resumen del carrito
-     */
     public function getSummary()
     {
         try {
@@ -210,28 +183,18 @@ class CarritoController
         }
     }
 
-    /**
-     * Obtiene el ID del usuario actual desde la sesión/token
-     */
     private function getCurrentUserId()
     {
-        // Intentar obtener desde sesión
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        // Si hay usuario en sesión, retornar su ID
         if (isset($_SESSION['usuario_id'])) {
             return (int)$_SESSION['usuario_id'];
         }
-
-        // Si no hay usuario logueado, retornar null para carrito anónimo
         return null;
     }
 
-    /**
-     * PUT /carrito/decrementar/{productoId} - Disminuir cantidad de un producto en 1
-     */
     public function decrementar($productoId)
     {
         try {

@@ -20,7 +20,6 @@ class Carrito extends BaseModel
         $cart = oci_fetch_assoc($stid);
 
         if (!$cart) {
-            // 1. Obtener siguiente ID de la secuencia
             $sqlSeq = "SELECT SEQ_CARRITO.NEXTVAL AS id FROM DUAL";
             $stidSeq = oci_parse($this->conn, $sqlSeq);
             if (!oci_execute($stidSeq)) {
@@ -30,7 +29,6 @@ class Carrito extends BaseModel
             $rowSeq = oci_fetch_assoc($stidSeq);
             $newId = $rowSeq['ID'];
 
-            // 2. Insertar con ID explícito
             $sqlInsert = "INSERT INTO carritos (id, usuario_id, fecha_ultima_actualizacion) 
                   VALUES (:id, :usuario_id, SYSDATE)";
             $stidInsert = oci_parse($this->conn, $sqlInsert);
@@ -63,7 +61,6 @@ class Carrito extends BaseModel
         $cart = oci_fetch_assoc($stid);
 
         if (!$cart) {
-            // 1. Obtener siguiente ID de la secuencia
             $sqlSeq = "SELECT SEQ_CARRITO.NEXTVAL AS id FROM DUAL";
             $stidSeq = oci_parse($this->conn, $sqlSeq);
             if (!oci_execute($stidSeq)) {
@@ -73,7 +70,6 @@ class Carrito extends BaseModel
             $rowSeq = oci_fetch_assoc($stidSeq);
             $newId = $rowSeq['ID'];
 
-            // 2. Insertar carrito anónimo con ID explícito
             $sqlInsert = "INSERT INTO carritos (id, session_id, fecha_ultima_actualizacion) 
                   VALUES (:id, :session_id, SYSDATE)";
             $stidInsert = oci_parse($this->conn, $sqlInsert);
@@ -105,27 +101,23 @@ class Carrito extends BaseModel
         while ($row = oci_fetch_assoc($stid)) {
             $imagenUrl = '';
 
-            // Procesar la imagen correctamente
             if (isset($row['IMAGENES']) && !empty($row['IMAGENES'])) {
                 $imagenesRaw = $row['IMAGENES'];
 
-                // Si es un objeto LOB (Oracle), cargar su contenido
                 if (is_object($imagenesRaw) && method_exists($imagenesRaw, 'load')) {
                     $imagenContent = $imagenesRaw->load();
                     $imagenUrl = $this->extractFirstImageFromString($imagenContent);
                 }
-                // Si es un recurso
+
                 elseif (is_resource($imagenesRaw)) {
                     $imagenContent = stream_get_contents($imagenesRaw);
                     $imagenUrl = $this->extractFirstImageFromString($imagenContent);
                 }
-                // Si es string directamente
                 elseif (is_string($imagenesRaw)) {
                     $imagenUrl = $this->extractFirstImageFromString($imagenesRaw);
                 }
             }
 
-            // Si no hay imagen válida, usar una imagen por defecto
             if (empty($imagenUrl)) {
                 $imagenUrl = 'https://via.placeholder.com/300x300?text=Sin+Imagen';
             }
@@ -142,16 +134,13 @@ class Carrito extends BaseModel
                     'stock' => (int)$row['STOCK'],
                     'descripcion' => $row['DESCRIPCION'],
                     'imagen' => $imagenUrl,
-                    'imagenes' => [$imagenUrl] // Añadir como array para compatibilidad
+                    'imagenes' => [$imagenUrl]
                 ]
             ];
         }
         return $items;
     }
 
-    /**
-     * Extrae la primera imagen de un string que puede ser JSON o texto plano
-     */
     private function extractFirstImageFromString($imageString)
     {
         if (empty($imageString) || !is_string($imageString)) {
@@ -160,12 +149,10 @@ class Carrito extends BaseModel
 
         $cleaned = trim($imageString);
 
-        // Si el string está vacío después de limpiar
         if (empty($cleaned)) {
             return '';
         }
 
-        // Si es formato JSON tipo '["url"]'
         if (strpos($cleaned, '["') === 0 && substr($cleaned, -2) === '"]') {
             preg_match('/\[\"(.*?)\"\]/', $cleaned, $matches);
             if (isset($matches[1])) {
@@ -173,7 +160,6 @@ class Carrito extends BaseModel
             }
         }
 
-        // Si es un array JSON (válido)
         if (strpos($cleaned, '[') === 0 && substr($cleaned, -1) === ']') {
             $decoded = json_decode($cleaned, true);
             if (is_array($decoded) && !empty($decoded) && is_string($decoded[0])) {
@@ -181,12 +167,10 @@ class Carrito extends BaseModel
             }
         }
 
-        // Si es una URL directa (sin comillas ni corchetes)
         if (filter_var($cleaned, FILTER_VALIDATE_URL)) {
             return $cleaned;
         }
 
-        // Si tiene comillas al inicio y final pero no es array JSON
         if ((strpos($cleaned, '"') === 0 && substr($cleaned, -1) === '"') ||
             (strpos($cleaned, "'") === 0 && substr($cleaned, -1) === "'")
         ) {
@@ -201,12 +185,10 @@ class Carrito extends BaseModel
 
     public function addOrUpdateItem($carritoId, $productoId, $cantidad)
     {
-        // Verificar stock
         if (!$this->checkStock($productoId, $cantidad)) {
             throw new Exception("Stock insuficiente");
         }
 
-        // Verificar si ya existe
         $sqlCheck = "SELECT id, cantidad FROM carrito_items 
                      WHERE carrito_id = :carrito_id AND producto_id = :producto_id";
         $stidCheck = $this->execute($sqlCheck, [
@@ -261,13 +243,8 @@ class Carrito extends BaseModel
         return true;
     }
 
-    /**
-     * Disminuye la cantidad de un producto en 1 unidad
-     * Si la cantidad resultante es 0, elimina el producto
-     */
     public function decrementItemQuantity($carritoId, $productoId)
     {
-        // Obtener la cantidad actual
         $sqlGet = "SELECT id, cantidad FROM carrito_items 
                WHERE carrito_id = :carrito_id AND producto_id = :producto_id";
         $stidGet = $this->execute($sqlGet, [
@@ -277,13 +254,12 @@ class Carrito extends BaseModel
         $existing = oci_fetch_assoc($stidGet);
 
         if (!$existing) {
-            return true; // No existe, nada que hacer
+            return true;
         }
 
         $nuevaCantidad = $existing['CANTIDAD'] - 1;
 
         if ($nuevaCantidad <= 0) {
-            // Eliminar el producto si la cantidad llega a 0
             return $this->removeItem($carritoId, $productoId);
         }
 
@@ -368,7 +344,6 @@ class Carrito extends BaseModel
         $sql = "SELECT stock FROM productos WHERE id = :id";
         $stid = $this->execute($sql, [":id" => $productoId]);
         $result = oci_fetch_assoc($stid);
-        // La columna puede ser 'STOCK' o 'stock'
         $stockActual = $result['STOCK'] ?? $result['stock'] ?? 0;
         return $stockActual >= $cantidadNecesaria;
     }

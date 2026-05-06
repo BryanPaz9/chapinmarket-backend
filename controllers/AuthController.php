@@ -26,8 +26,6 @@ class AuthController
 
         $correo   = trim($data['correo']);
         $password = $data['password'];
-
-        // CORREGIDO: El bind parameter en la SQL debe coincidir con oci_bind_by_name
         $sql  = "SELECT id, nombre, correo, contrasena, es_admin, direccion, telefono 
                  FROM usuarios 
                  WHERE correo = :p_correo";
@@ -52,8 +50,6 @@ class AuthController
         if (Password::needsRehash($usuario['CONTRASENA'])) {
             $this->actualizarContrasena((int)$usuario['ID'], $password);
         }
-
-        // Obtener tarjetas del usuario
         $tarjetas = [];
         $sqlTarjetas = "SELECT id, titular, numero_enmascarado, tipo, vencimiento FROM tarjetas WHERE usuario_id = :p_uid";
         $stidTarjetas = oci_parse($this->conn, $sqlTarjetas);
@@ -70,7 +66,6 @@ class AuthController
             }
         }
 
-        // Obtener direcciones del usuario
         $direcciones = [];
         $sqlDir = "SELECT id, etiqueta, linea1, linea2, ciudad, departamento, codigo_postal, es_predeterminada 
                    FROM direcciones WHERE usuario_id = :p_uid ORDER BY es_predeterminada DESC, id ASC";
@@ -109,9 +104,6 @@ class AuthController
         Response::success($respuesta, "Inicio de sesión exitoso");
     }
 
-    /**
-     * POST /auth/registro
-     */
     public function registro()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -131,7 +123,6 @@ class AuthController
 
         $passwordHash = Password::hash($password);
 
-        // Verificar si el correo ya existe
         $checkSql  = "SELECT id FROM usuarios WHERE correo = :p_correo";
         $checkStid = oci_parse($this->conn, $checkSql);
         oci_bind_by_name($checkStid, ":p_correo", $correo);
@@ -155,7 +146,6 @@ class AuthController
             Response::error("Error al crear usuario: " . $e['message'], 500);
         }
 
-        // Obtener el ID generado por el trigger TRG_USUARIOS_ID (seq_usuarios)
         $sqlId  = "SELECT seq_usuario.CURRVAL FROM DUAL";
         $stidId = oci_parse($this->conn, $sqlId);
         oci_execute($stidId);
@@ -186,9 +176,6 @@ class AuthController
         Response::success($usuario, "Usuario registrado exitosamente", 201);
     }
 
-    /**
-     * POST /auth/cambiar-password
-     */
     public function cambiarPassword()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -231,7 +218,6 @@ class AuthController
 
     public function me()
     {
-        // Fallback para desarrollo: permitir ?uid=XX si no hay sesión
         if (!isset($_SESSION['usuario_id'])) {
             if (isset($_GET['uid'])) {
                 $uid = (int)$_GET['uid'];

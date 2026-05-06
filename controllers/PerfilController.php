@@ -348,7 +348,6 @@ class PerfilController
             $bindParams[':p_esPredeterminada'] = $esPredeterminada;
 
             if ($esPredeterminada) {
-                // Quitar predeterminada actual (si se pide)
                 $sqlReset = "UPDATE direcciones SET es_predeterminada = 0 WHERE usuario_id = :p_uid_reset";
                 $stidReset = oci_parse($this->conn, $sqlReset);
                 oci_bind_by_name($stidReset, ":p_uid_reset", $usuarioId, -1, SQLT_INT);
@@ -399,10 +398,6 @@ class PerfilController
         Response::success(null, "Dirección eliminada correctamente");
     }
 
-    // ========================
-    // TARJETAS
-    // ========================
-
     private function obtenerTarjetas($usuarioId)
     {
         try {
@@ -450,7 +445,6 @@ class PerfilController
             Response::error("Datos de tarjeta inválidos. Se requiere titular y número", 400);
         }
 
-        // Limpiar y enmascarar el número — solo quedarse con dígitos
         $numeroLimpio = preg_replace('/\D/', '', $data['numeroEnmascarado']);
         if (strlen($numeroLimpio) < 4) {
             Response::error("El número de tarjeta debe tener al menos 4 dígitos", 400);
@@ -501,7 +495,6 @@ class PerfilController
             Response::error("Tarjeta no encontrada", 404);
         }
 
-        // Verificar si hay transacciones asociadas
         $checkTransSql = "SELECT COUNT(*) AS cnt FROM transacciones WHERE tarjeta_id = :p_tid";
         $checkTransStid = oci_parse($this->conn, $checkTransSql);
         oci_bind_by_name($checkTransStid, ":p_tid", $id, -1, SQLT_INT);
@@ -518,7 +511,6 @@ class PerfilController
 
         if (!oci_execute($stid)) {
             $e = oci_error($stid);
-            // Si aun así falla por integridad, devolver 409
             if (isset($e['code']) && $e['code'] == 2292) {
                 Response::error("No se puede eliminar la tarjeta porque tiene transacciones asociadas.", 409);
             }
@@ -527,10 +519,6 @@ class PerfilController
 
         Response::success(null, "Tarjeta eliminada correctamente");
     }
-
-    // ========================
-    // PEDIDOS
-    // ========================
 
     private function obtenerPedidos($usuarioId)
     {

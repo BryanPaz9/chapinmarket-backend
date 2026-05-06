@@ -1,24 +1,10 @@
 <?php
-
-/**
- * DIAGNÓSTICO ULTRA PREMIUM - ChapínMarket
- * Versión 3.0 - Análisis forense completo del sistema
- * 
- * Modos de ejecución:
- * - Normal: ?mode=html (por defecto)
- * - JSON: ?mode=json (para análisis programático)
- * - Silencioso: ?mode=silent (solo devuelve estado éxito/fallo)
- * - Debug: ?mode=debug (información aún más detallada)
- */
-
-// Configuración extrema de errores
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 ini_set('log_errors', 1);
 ini_set('error_log', 'C:/xampp/php/logs/php_error_log');
 
-// Capturar todos los errores para mostrarlos elegantemente
 $php_errors = [];
 set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$php_errors) {
     $php_errors[] = [
@@ -31,12 +17,10 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$php_erro
     return true;
 });
 
-// Determinar modo de salida
 $mode = $_GET['mode'] ?? 'html';
 $mode = in_array($mode, ['html', 'json', 'silent', 'debug']) ? $mode : 'html';
 $show_debug = ($mode === 'debug');
 
-// Iniciar sesión con manejo de errores - SIN usar Response
 try {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -47,10 +31,8 @@ try {
     $session_error = $e->getMessage();
 }
 
-// IMPORTANTE: Guardar estado de sesión ANTES de que cualquier controlador pueda hacer exit()
 $diagnostic_session_data = $_SESSION;
 
-// ==================== COLECTOR DE DATOS ====================
 $diagnostico = [
     'timestamp' => date('Y-m-d H:i:s'),
     'mode' => $mode,
@@ -70,7 +52,6 @@ $diagnostico = [
     'php_errors_captured' => $php_errors
 ];
 
-// ==================== 1. ANÁLISIS DE SESIÓN AVANZADO ====================
 $diagnostico['session'] = [
     'started' => $session_started ?? false,
     'error' => $session_error ?? null,
@@ -84,12 +65,10 @@ $diagnostico['session'] = [
     'save_path_writable' => is_writable(session_save_path() ?: sys_get_temp_dir()),
 ];
 
-// Verificar cookies
 $diagnostico['session']['cookies'] = $_COOKIE;
 $diagnostico['session']['has_session_cookie'] = isset($_COOKIE[session_name()]);
 $diagnostico['session']['session_cookie_value'] = $_COOKIE[session_name()] ?? 'No existe';
 
-// Verificar cabeceras importantes
 $diagnostico['session']['headers'] = [
     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
     'origin' => $_SERVER['HTTP_ORIGIN'] ?? 'None',
@@ -98,7 +77,6 @@ $diagnostico['session']['headers'] = [
     'accept_language' => $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'None',
 ];
 
-// Usuario logueado
 if (isset($_SESSION['usuario_id'])) {
     $diagnostico['session']['logged_in'] = true;
     $diagnostico['session']['user_id'] = $_SESSION['usuario_id'];
@@ -110,7 +88,6 @@ if (isset($_SESSION['usuario_id'])) {
     $diagnostico['recommendations'][] = '⚠️ Inicia sesión en el frontend antes de ejecutar este diagnóstico para pruebas de escritura';
 }
 
-// ==================== 2. VERIFICACIÓN DE ARCHIVOS CRÍTICOS ====================
 $required_files = [
     '../config/database.php' => 'Configuración de BD',
     '../core/Response.php' => 'Respuestas API',
@@ -146,7 +123,6 @@ if (!empty($missing_files)) {
     $diagnostico['recommendations'][] = '❌ Archivos faltantes: ' . implode(', ', $missing_files);
 }
 
-// Verificar directorio de uploads
 $uploads_dir = __DIR__ . '/../uploads';
 $diagnostico['filesystem']['uploads_dir'] = [
     'exists' => file_exists($uploads_dir),
@@ -154,11 +130,9 @@ $diagnostico['filesystem']['uploads_dir'] = [
     'path' => $uploads_dir
 ];
 
-// ==================== 3. CONEXIÓN A BASE DE DATOS ====================
 try {
     require_once __DIR__ . '/../config/database.php';
 
-    // Medir tiempo de conexión
     $conn_start = microtime(true);
     $conn = Database::connect();
     $conn_time = round((microtime(true) - $conn_start) * 1000, 2);
@@ -169,7 +143,6 @@ try {
         'message' => 'Conexión establecida correctamente'
     ];
 
-    // Información de la sesión de Oracle
     $stmt = oci_parse($conn, "SELECT USER, SYSDATE FROM DUAL");
     oci_execute($stmt);
     $row = oci_fetch_assoc($stmt);
@@ -178,7 +151,6 @@ try {
         'current_date' => $row['SYSDATE'] ?? 'Unknown'
     ];
 
-    // Versión de Oracle (con manejo de errores - puede no tener permisos)
     try {
         $stmt = oci_parse($conn, "SELECT banner FROM v\$version WHERE banner LIKE 'Oracle%'");
         oci_execute($stmt);
@@ -188,7 +160,6 @@ try {
         $diagnostico['database']['oracle_version'] = 'No se pudo obtener (usuario sin privilegios)';
     }
 
-    // Parámetros de NLS
     $nls_params = ['NLS_DATE_FORMAT', 'NLS_LANGUAGE', 'NLS_TERRITORY', 'NLS_CHARACTERSET'];
     foreach ($nls_params as $param) {
         $stmt = oci_parse($conn, "SELECT VALUE FROM NLS_SESSION_PARAMETERS WHERE PARAMETER = :p");
@@ -207,7 +178,6 @@ try {
     $conn = null;
 }
 
-// ==================== 4. ANÁLISIS DE TABLAS Y ESTRUCTURA ====================
 if ($conn) {
     $tables_info = [];
     $expected_tables = [
@@ -232,12 +202,10 @@ if ($conn) {
         $exists = ($row['CNT'] ?? 0) > 0;
 
         if ($exists) {
-            // Contar registros
             $stmtCount = oci_parse($conn, "SELECT COUNT(*) as total FROM \"$table\"");
             oci_execute($stmtCount);
             $countRow = oci_fetch_assoc($stmtCount);
 
-            // Obtener columnas
             $stmtCols = oci_parse($conn, "SELECT column_name, data_type, data_length, nullable FROM user_tab_columns WHERE table_name = :t ORDER BY column_id");
             oci_bind_by_name($stmtCols, ":t", $table);
             oci_execute($stmtCols);
@@ -269,7 +237,6 @@ if ($conn) {
     }
     $diagnostico['database']['tables'] = $tables_info;
 
-    // ==================== 5. VERIFICACIÓN DE SECUENCIAS ====================
     $sequences = [];
     $expected_sequences = ['SEQ_USUARIO', 'SEQ_DIRECCION', 'SEQ_TARJETA', 'SEQ_CARRITO', 'SEQ_PRODUCTO', 'SEQ_CATEGORIA', 'SEQ_TEMPORADA'];
 
@@ -285,7 +252,6 @@ if ($conn) {
     }
     $diagnostico['database']['sequences'] = $sequences;
 
-    // ==================== 6. VERIFICACIÓN DE TRIGGERS ====================
     $triggers = [];
     $expected_triggers = ['TRG_USUARIOS_ID', 'TRG_DIRECCION_ID', 'TRG_TARJETA_ID'];
 
@@ -303,11 +269,9 @@ if ($conn) {
     }
     $diagnostico['database']['triggers'] = $triggers;
 
-    // ==================== 7. PRUEBA DE INSERT EN DIRECCIONES ====================
     if ($diagnostico['session']['logged_in']) {
         $usuarioId = $_SESSION['usuario_id'];
 
-        // Verificar que el usuario existe
         $stmt = oci_parse($conn, "SELECT id, nombre FROM usuarios WHERE id = :p_id");
         oci_bind_by_name($stmt, ":p_id", $usuarioId);
         oci_execute($stmt);
@@ -357,7 +321,6 @@ if ($conn) {
         }
     }
 
-    // ==================== 8. PRUEBA DE INSERT EN TARJETAS ====================
     if ($diagnostico['session']['logged_in']) {
         $usuarioId = $_SESSION['usuario_id'];
 
@@ -381,7 +344,6 @@ if ($conn) {
                 'test_data' => ['titular' => $testTitular, 'numero' => $testNumero]
             ];
 
-            // Limpiar
             $sqlDelete = "DELETE FROM tarjetas WHERE titular = :p_titular AND usuario_id = :p_uid";
             $stmtDelete = oci_parse($conn, $sqlDelete);
             oci_bind_by_name($stmtDelete, ":p_titular", $testTitular);
@@ -400,10 +362,7 @@ if ($conn) {
     }
 }
 
-// ==================== 9. PRUEBA DE CONTROLADORES (SIN LLAMAR A OBJETOS QUE HACEN exit()) ====================
 if ($diagnostico['session']['logged_in']) {
-    // NO llamamos a PerfilController::obtenerDatos() porque hace exit() y corta la ejecución
-    // En su lugar, hacemos una consulta directa a la base de datos para obtener los datos del perfil
 
     if ($conn) {
         $usuarioId = $_SESSION['usuario_id'];
@@ -413,13 +372,11 @@ if ($diagnostico['session']['logged_in']) {
         $usuarioData = oci_fetch_assoc($stmt);
 
         if ($usuarioData) {
-            // Obtener direcciones
             $stmtDir = oci_parse($conn, "SELECT COUNT(*) as cnt FROM direcciones WHERE usuario_id = :p_uid");
             oci_bind_by_name($stmtDir, ":p_uid", $usuarioId);
             oci_execute($stmtDir);
             $dirCount = oci_fetch_assoc($stmtDir);
 
-            // Obtener tarjetas
             $stmtTar = oci_parse($conn, "SELECT COUNT(*) as cnt FROM tarjetas WHERE usuario_id = :p_uid");
             oci_bind_by_name($stmtTar, ":p_uid", $usuarioId);
             oci_execute($stmtTar);
@@ -448,7 +405,6 @@ if ($diagnostico['session']['logged_in']) {
     }
 }
 
-// ==================== 10. CONFIGURACIÓN DE PHP ====================
 $diagnostico['config']['php'] = [
     'display_errors' => ini_get('display_errors'),
     'display_startup_errors' => ini_get('display_startup_errors'),
@@ -473,7 +429,6 @@ if (!$diagnostico['config']['oci8_loaded']) {
     $diagnostico['recommendations'][] = '❌ La extensión OCI8 de PHP no está cargada. Es necesaria para conectar con Oracle.';
 }
 
-// ==================== 11. VARIABLES DE ENTORNO ====================
 $diagnostico['environment'] = [
     'os' => PHP_OS,
     'os_family' => PHP_OS_FAMILY,
@@ -485,15 +440,12 @@ $diagnostico['environment'] = [
     'https' => isset($_SERVER['HTTPS']) ? 'On' : 'Off',
 ];
 
-// ==================== 12. LOGS DE ERRORES ====================
-// PHP Error Log
 $logPath = ini_get('error_log');
 if ($logPath && file_exists($logPath)) {
     $logContent = file($logPath);
     $logLines = count($logContent);
     $lastErrors = array_slice($logContent, -50);
 
-    // Filtrar solo errores relacionados con ChapínMarket
     $chapin_errors = array_filter($lastErrors, function ($line) {
         return stripos($line, 'chapinmarket') !== false || stripos($line, 'ORA-') !== false;
     });
@@ -514,13 +466,11 @@ if ($logPath && file_exists($logPath)) {
     ];
 }
 
-// Apache Error Log
 $apacheLogPath = 'C:/xampp/apache/logs/error.log';
 if (file_exists($apacheLogPath)) {
     $apacheLogContent = file($apacheLogPath);
     $lastApacheErrors = array_slice($apacheLogContent, -30);
 
-    // Filtrar errores de ChapínMarket
     $chapin_apache_errors = array_filter($lastApacheErrors, function ($line) {
         return stripos($line, 'chapinmarket') !== false || stripos($line, 'PHP') !== false;
     });
@@ -539,7 +489,6 @@ if (file_exists($apacheLogPath)) {
     ];
 }
 
-// ==================== 13. PRUEBAS DE ENDPOINTS VÍA CURL ====================
 $endpoints_to_test = [
     '/categorias' => 'GET',
     '/productos' => 'GET',
@@ -575,7 +524,6 @@ foreach ($endpoints_to_test as $endpoint => $method) {
     ];
 }
 
-// ==================== 14. PRUEBA DE CORS ====================
 $cors_test_url = 'http://localhost/chapinmarket-backend/public/categorias';
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $cors_test_url);
@@ -596,7 +544,6 @@ if (stripos($headers, 'Access-Control-Allow-Origin: http://localhost') === false
     $diagnostico['recommendations'][] = '⚠️ CORS no configurado correctamente - verificar headers en index.php';
 }
 
-// ==================== 15. RESUMEN ====================
 $diagnostico['summary'] = [
     'total_checks' => 0,
     'passed' => 0,
@@ -605,7 +552,6 @@ $diagnostico['summary'] = [
     'critical_issues' => 0
 ];
 
-// Contar checks
 if (isset($diagnostico['database']['connection']['success'])) {
     $diagnostico['summary']['total_checks']++;
     $diagnostico['database']['connection']['success'] ? $diagnostico['summary']['passed']++ : $diagnostico['summary']['failed']++;
@@ -631,13 +577,7 @@ $diagnostico['summary']['critical_issues'] = count(array_filter($diagnostico['re
 
 $diagnostico['php_errors_captured'] = $php_errors;
 
-// Restaurar handler de errores
 restore_error_handler();
-
-// ==================== SALIDA ====================
-// FORZAR MODO HTML cuando hay sesión activa para evitar que Response::success() interfiera
-// NOTA: La sección de controladores ya no llama a métodos que hacen exit()
-
 if ($mode === 'json' && !$diagnostico['session']['logged_in']) {
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($diagnostico, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);

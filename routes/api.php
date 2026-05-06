@@ -11,10 +11,11 @@ require_once __DIR__ . '/../controllers/PerfilController.php';
 require_once __DIR__ . '/../controllers/PagoController.php';
 require_once __DIR__ . '/../controllers/PedidoController.php';
 require_once __DIR__ . '/../controllers/FavoritoController.php';
+require_once __DIR__ . '/../controllers/CalificacionController.php';
+require_once __DIR__ . '/../controllers/ResenaController.php';
 
 $router = new Router();
 
-// ========== AUTENTICACIÓN ==========
 $router->add('POST', '/auth/login', function () {
     (new AuthController())->login();
 });
@@ -31,12 +32,9 @@ $router->add('POST', '/auth/cambiar-password', function () {
     (new AuthController())->cambiarPassword();
 });
 
-// ========== PERFIL DE USUARIO ==========
-// Ruta principal que usa el frontend (app.js)
 $router->add('GET', '/perfil', function () {
     (new PerfilController())->obtenerDatos();
 });
-// Rutas alternativas (por si se llaman con /datos)
 $router->add('GET', '/perfil/datos', function () {
     (new PerfilController())->obtenerDatos();
 });
@@ -47,7 +45,6 @@ $router->add('PUT', '/perfil/password', function () {
     (new PerfilController())->cambiarPassword();
 });
 
-// Direcciones
 $router->add('GET', '/perfil/direcciones', function () {
     (new PerfilController())->listarDirecciones();
 });
@@ -61,7 +58,6 @@ $router->add('DELETE', '/perfil/direcciones/{id}', function ($id) {
     (new PerfilController())->eliminarDireccion($id);
 });
 
-// Tarjetas
 $router->add('GET', '/perfil/tarjetas', function () {
     (new PerfilController())->listarTarjetas();
 });
@@ -72,7 +68,6 @@ $router->add('DELETE', '/perfil/tarjetas/{id}', function ($id) {
     (new PerfilController())->eliminarTarjeta($id);
 });
 
-// ========== CATEGORÍAS ==========
 $router->add('GET', '/categorias', function () {
     (new CategoriaController())->index();
 });
@@ -89,7 +84,6 @@ $router->add('DELETE', '/categorias/{id}', function ($id) {
     (new CategoriaController())->delete($id);
 });
 
-// ========== PRODUCTOS ==========
 $router->add('GET', '/productos', function () {
     (new ProductoController())->index();
 });
@@ -106,7 +100,20 @@ $router->add('DELETE', '/productos/{id}', function ($id) {
     (new ProductoController())->delete($id);
 });
 
-// ========== TARJETAS (admin) ==========
+$router->add('GET', '/productos/{id}/calificacion', function ($id) {
+    (new CalificacionController())->getRating($id);
+});
+$router->add('POST', '/productos/{id}/calificacion', function ($id) {
+    (new CalificacionController())->saveRating($id);
+});
+
+$router->add('GET', '/productos/{id}/resenas', function ($id) {
+    (new ResenaController())->index($id);
+});
+$router->add('POST', '/productos/{id}/resenas', function ($id) {
+    (new ResenaController())->store($id);
+});
+
 $router->add('GET', '/tarjetas', function () {
     (new TarjetaController())->index();
 });
@@ -123,7 +130,6 @@ $router->add('DELETE', '/tarjetas/{id}', function ($id) {
     (new TarjetaController())->delete($id);
 });
 
-// ========== TEMPORADAS ==========
 $router->add('GET', '/temporadas', function () {
     (new TemporadaController())->index();
 });
@@ -140,7 +146,6 @@ $router->add('DELETE', '/temporadas/{id}', function ($id) {
     (new TemporadaController())->delete($id);
 });
 
-// ========== USUARIOS ==========
 $router->add('GET', '/usuarios', function () {
     (new UsuarioController())->index();
 });
@@ -157,7 +162,6 @@ $router->add('DELETE', '/usuarios/{id}', function ($id) {
     (new UsuarioController())->delete($id);
 });
 
-// ========== CARRITO DE COMPRAS ==========
 $router->add('GET', '/carrito', function () {
     (new CarritoController())->index();
 });
@@ -180,12 +184,10 @@ $router->add('PUT', '/carrito/decrementar/{id}', function ($id) {
     (new CarritoController())->decrementar($id);
 });
 
-// ========== PAGO ==========
 $router->add('POST', '/pago', function () {
     (new PagoController())->procesar();
 });
 
-// ========== FAVORITOS ==========
 $router->add('GET', '/favoritos', function () {
     (new FavoritoController())->index();
 });
@@ -196,7 +198,6 @@ $router->add('DELETE', '/favoritos/{id}', function ($id) {
     (new FavoritoController())->destroy($id);
 });
 
-// ========== IMÁGENES ==========
 $router->add('GET', '/pedidos', function () {
     (new PedidoController())->index();
 });

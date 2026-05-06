@@ -11,7 +11,6 @@ class BaseModel
     }
 
     /**
-     * Ejecuta una consulta SQL y lanza una excepción si falla.
      * @throws Exception
      */
     protected function execute($sql, $params = [])
@@ -22,9 +21,13 @@ class BaseModel
             throw new Exception("Error al preparar la consulta: " . ($e['message'] ?? 'Error desconocido'));
         }
 
-        foreach ($params as $key => $value) {
-            oci_bind_by_name($stid, $key, $params[$key]);
+        $bindings = [];
+
+        foreach ($params as $placeholder => &$value) {
+            oci_bind_by_name($stid, $placeholder, $value);
+            $bindings[] = &$value;
         }
+        unset($value);
 
         $result = oci_execute($stid);
         if (!$result) {
@@ -33,6 +36,7 @@ class BaseModel
             error_log($errorMsg . " | SQL: $sql");
             throw new Exception($errorMsg);
         }
+
         return $stid;
     }
 }

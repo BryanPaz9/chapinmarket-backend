@@ -1,6 +1,5 @@
 <?php
-// core/Router.php - Versión corregida
-require_once __DIR__ . '/Response.php';   // Asegura que Response esté disponible sin redeclarar
+require_once __DIR__ . '/Response.php';
 
 class Router
 {
@@ -34,7 +33,6 @@ class Router
             }
         }
 
-        // Response ya está definida en Response.php
         Response::error("Ruta no encontrada", 404);
     }
 }

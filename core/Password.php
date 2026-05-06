@@ -17,7 +17,6 @@ class Password
             return true;
         }
 
-        // Compatibilidad temporal con usuarios creados antes de encriptar contrasenas.
         return hash_equals((string)$hash, (string)$password);
     }
 

@@ -11,9 +11,6 @@ class PagoController
         $this->model = new Pago();
     }
 
-    /**
-     * POST /pago - Procesar pago del carrito y crear pedido
-     */
     public function procesar()
     {
         try {
