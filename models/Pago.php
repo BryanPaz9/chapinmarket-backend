@@ -50,8 +50,11 @@ class Pago extends BaseModel
 
         oci_commit($this->conn);
 
+        $resumenRestante = $this->getResumenCarritoRestante($carritoId);
+
         return [
-            'pedido_id' => (int)$pedidoId
+            'pedido_id' => (int)$pedidoId,
+            'carrito_restante' => $resumenRestante
         ];
     }
 
@@ -195,10 +198,28 @@ class Pago extends BaseModel
 
         oci_commit($this->conn);
 
+        $resumenRestante = $this->getResumenCarritoRestante($carritoId);
+
         return [
             'pedido_id' => (int)$pedidoId,
             'total' => $total,
-            'correo_contacto' => $correoContacto
+            'correo_contacto' => $correoContacto,
+            'carrito_restante' => $resumenRestante
+        ];
+    }
+
+    private function getResumenCarritoRestante($carritoId)
+    {
+        $sql = "SELECT COUNT(*) AS total_items,
+                       NVL(SUM(cantidad), 0) AS total_unidades
+                FROM carrito_items
+                WHERE carrito_id = :carrito_id";
+        $stid = $this->execute($sql, [":carrito_id" => $carritoId]);
+        $row = oci_fetch_assoc($stid);
+
+        return [
+            'totalItems' => (int)($row['TOTAL_ITEMS'] ?? 0),
+            'totalUnidades' => (int)($row['TOTAL_UNIDADES'] ?? 0)
         ];
     }
 }
