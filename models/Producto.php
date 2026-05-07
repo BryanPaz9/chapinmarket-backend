@@ -3,187 +3,205 @@ require_once 'BaseModel.php';
 
 class Producto extends BaseModel
 {
-    /**
-     * Obtiene todos los productos con sus categorías asociadas.
-     */
+    private function cargarImagen($valor)
+    {
+        if (is_object($valor) && method_exists($valor, 'load')) {
+            $valor = $valor->load();
+        } elseif (is_resource($valor)) {
+            $valor = stream_get_contents($valor);
+        }
+
+        if (is_string($valor) && !empty($valor)) {
+            $cleaned = trim($valor);
+            if (strpos($cleaned, '["') === 0 && substr($cleaned, -2) === '"]') {
+                preg_match('/\[\"(.*?)\"\]/', $cleaned, $matches);
+                if (isset($matches[1])) {
+                    return $matches[1];
+                }
+            }
+
+            if (substr($cleaned, 0, 1) === '[' && substr($cleaned, -1) === ']') {
+                $decoded = json_decode($cleaned, true);
+                if (is_array($decoded) && !empty($decoded) && is_string($decoded[0])) {
+                    return $decoded[0];
+                }
+            }
+        }
+
+        return $valor;
+    }
+
+    private function prepararImagenes($imagenes)
+    {
+        if (is_array($imagenes)) {
+            return json_encode(array_values($imagenes), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        }
+
+        return $imagenes ?? null;
+    }
+
+    private function normalizarIds($ids)
+    {
+        if (!is_array($ids)) {
+            return [];
+        }
+
+        $normalizados = [];
+        foreach ($ids as $id) {
+            $id = (int)$id;
+            if ($id > 0 && !in_array($id, $normalizados, true)) {
+                $normalizados[] = $id;
+            }
+        }
+
+        return $normalizados;
+    }
+
+    private function obtenerMapaRelacion($tabla, $columna)
+    {
+        $sql = "SELECT producto_id, $columna FROM $tabla";
+        $stid = $this->execute($sql);
+        $mapa = [];
+
+        while ($row = oci_fetch_assoc($stid)) {
+            $pid = (int)$row['PRODUCTO_ID'];
+            $id = (int)$row[strtoupper($columna)];
+            if (!isset($mapa[$pid])) {
+                $mapa[$pid] = [];
+            }
+            $mapa[$pid][] = $id;
+        }
+
+        return $mapa;
+    }
+
+    private function reemplazarRelaciones($productoId, $tabla, $columna, $ids)
+    {
+        $this->execute("DELETE FROM $tabla WHERE producto_id = :pid", [":pid" => $productoId]);
+
+        $ids = $this->normalizarIds($ids);
+        if (empty($ids)) {
+            return;
+        }
+
+        $sql = "INSERT INTO $tabla (producto_id, $columna) VALUES (:pid, :rid)";
+        foreach ($ids as $relacionId) {
+            $stid = oci_parse($this->conn, $sql);
+            oci_bind_by_name($stid, ":pid", $productoId);
+            oci_bind_by_name($stid, ":rid", $relacionId);
+            oci_execute($stid);
+        }
+    }
+
     public function getAll()
     {
-        // 1. Obtener todos los productos
-        $sql = "SELECT * FROM productos";
+        $sql = "SELECT * FROM productos ORDER BY id";
         $stid = $this->execute($sql);
 
         $productos = [];
         while ($row = oci_fetch_assoc($stid)) {
-            // Procesar imagen (existente)
             if (isset($row['IMAGENES'])) {
-                if (is_object($row['IMAGENES']) && method_exists($row['IMAGENES'], 'load')) {
-                    $row['IMAGENES'] = $row['IMAGENES']->load();
-                } elseif (is_resource($row['IMAGENES'])) {
-                    $clob = $row['IMAGENES'];
-                    $row['IMAGENES'] = stream_get_contents($clob);
-                }
-
-                if (is_string($row['IMAGENES']) && !empty($row['IMAGENES'])) {
-                    $cleaned = trim($row['IMAGENES']);
-                    if (strpos($cleaned, '["') === 0 && substr($cleaned, -2) === '"]') {
-                        preg_match('/\[\"(.*?)\"\]/', $cleaned, $matches);
-                        if (isset($matches[1])) {
-                            $row['IMAGENES'] = $matches[1];
-                        }
-                    }
-                    if (substr($cleaned, 0, 1) === '[' && substr($cleaned, -1) === ']') {
-                        $decoded = json_decode($cleaned, true);
-                        if (is_array($decoded) && !empty($decoded) && is_string($decoded[0])) {
-                            $row['IMAGENES'] = $decoded[0];
-                        }
-                    }
-                }
+                $row['IMAGENES'] = $this->cargarImagen($row['IMAGENES']);
             }
             $productos[] = $row;
         }
 
-        // 2. Obtener todas las relaciones producto-categoría
-        $sqlMap = "SELECT producto_id, categoria_id FROM producto_categorias";
-        $stidMap = $this->execute($sqlMap);
-        $mapaCategorias = [];
-        while ($rowMap = oci_fetch_assoc($stidMap)) {
-            $pid = (int)$rowMap['PRODUCTO_ID'];
-            $cid = (int)$rowMap['CATEGORIA_ID'];
-            if (!isset($mapaCategorias[$pid])) {
-                $mapaCategorias[$pid] = [];
-            }
-            $mapaCategorias[$pid][] = $cid;
-        }
+        $mapaCategorias = $this->obtenerMapaRelacion('producto_categorias', 'categoria_id');
+        $mapaTemporadas = $this->obtenerMapaRelacion('producto_temporadas', 'temporada_id');
 
-        // 3. Asignar los IDs de categoría a cada producto
         $data = [];
         foreach ($productos as $row) {
             $rowId = (int)$row['ID'];
-            $row['CATEGORIAIDS'] = isset($mapaCategorias[$rowId]) ? $mapaCategorias[$rowId] : [];
+            $row['CATEGORIAIDS'] = $mapaCategorias[$rowId] ?? [];
+            $row['TEMPORADAIDS'] = $mapaTemporadas[$rowId] ?? [];
             $data[] = $row;
         }
+
         return $data;
     }
 
-    /**
-     * Obtiene un producto por ID, incluyendo sus categorías.
-     */
     public function getById($id)
     {
         $sql = "SELECT p.*,
                        (SELECT LISTAGG(pc.categoria_id, ',') WITHIN GROUP (ORDER BY pc.categoria_id)
                         FROM producto_categorias pc
-                        WHERE pc.producto_id = p.id) AS categorias
+                        WHERE pc.producto_id = p.id) AS categorias,
+                       (SELECT LISTAGG(pt.temporada_id, ',') WITHIN GROUP (ORDER BY pt.temporada_id)
+                        FROM producto_temporadas pt
+                        WHERE pt.producto_id = p.id) AS temporadas
                 FROM productos p
                 WHERE p.id = :id";
         $stid = $this->execute($sql, [":id" => $id]);
 
         $result = oci_fetch_assoc($stid);
         if ($result) {
-            // Procesar imagen
             if (isset($result['IMAGENES'])) {
-                if (is_object($result['IMAGENES']) && method_exists($result['IMAGENES'], 'load')) {
-                    $result['IMAGENES'] = $result['IMAGENES']->load();
-                } elseif (is_resource($result['IMAGENES'])) {
-                    $result['IMAGENES'] = stream_get_contents($result['IMAGENES']);
-                }
-
-                if (is_string($result['IMAGENES']) && !empty($result['IMAGENES'])) {
-                    $cleaned = trim($result['IMAGENES']);
-                    if (strpos($cleaned, '["') === 0 && substr($cleaned, -2) === '"]') {
-                        preg_match('/\[\"(.*?)\"\]/', $cleaned, $matches);
-                        if (isset($matches[1])) {
-                            $result['IMAGENES'] = $matches[1];
-                        }
-                    } elseif (substr($cleaned, 0, 1) === '[' && substr($cleaned, -1) === ']') {
-                        $decoded = json_decode($cleaned, true);
-                        if (is_array($decoded) && !empty($decoded) && is_string($decoded[0])) {
-                            $result['IMAGENES'] = $decoded[0];
-                        }
-                    }
-                }
+                $result['IMAGENES'] = $this->cargarImagen($result['IMAGENES']);
             }
 
             $categoriasStr = $result['CATEGORIAS'] ?? '';
-            unset($result['CATEGORIAS']);
+            $temporadasStr = $result['TEMPORADAS'] ?? '';
+            unset($result['CATEGORIAS'], $result['TEMPORADAS']);
+
             $result['CATEGORIAIDS'] = !empty($categoriasStr)
                 ? array_map('intval', explode(',', $categoriasStr))
+                : [];
+            $result['TEMPORADAIDS'] = !empty($temporadasStr)
+                ? array_map('intval', explode(',', $temporadasStr))
                 : [];
         }
 
         return $result ?: null;
     }
 
-    /**
-     * Crea un producto con sus relaciones a categorías.
-     */
     public function create($data)
     {
-        // Insertar producto
         $sql = "INSERT INTO productos (nombre, descripcion, precio, stock, imagenes)
                 VALUES (:nombre, :descripcion, :precio, :stock, :imagenes)";
         $this->execute($sql, [
             ":nombre"      => $data['nombre'],
-            ":descripcion" => $data['descripcion'],
+            ":descripcion" => $data['descripcion'] ?? null,
             ":precio"      => $data['precio'],
             ":stock"       => $data['stock'],
-            ":imagenes"    => $data['imagenes']
+            ":imagenes"    => $this->prepararImagenes($data['imagenes'] ?? null)
         ]);
 
-        // Obtener el ID recién generado (asumiendo secuencia SEQ_PRODUCTO)
-        $sqlId = "SELECT SEQ_PRODUCTO.CURRVAL AS new_id FROM DUAL";
+        $sqlId = "SELECT seq_producto.CURRVAL AS new_id FROM DUAL";
         $stidId = oci_parse($this->conn, $sqlId);
         oci_execute($stidId);
         $rowId = oci_fetch_assoc($stidId);
         $newId = (int)$rowId['NEW_ID'];
 
-        // Insertar relaciones de categorías si vienen
-        if (!empty($data['categoriaIds']) && is_array($data['categoriaIds'])) {
-            $sqlCat = "INSERT INTO producto_categorias (producto_id, categoria_id) VALUES (:pid, :cid)";
-            foreach ($data['categoriaIds'] as $catId) {
-                $stidCat = oci_parse($this->conn, $sqlCat);
-                oci_bind_by_name($stidCat, ":pid", $newId);
-                oci_bind_by_name($stidCat, ":cid", $catId);
-                oci_execute($stidCat);
-            }
-        }
+        $this->reemplazarRelaciones($newId, 'producto_categorias', 'categoria_id', $data['categoriaIds'] ?? []);
+        $this->reemplazarRelaciones($newId, 'producto_temporadas', 'temporada_id', $data['temporadaIds'] ?? []);
 
         return true;
     }
 
-    /**
-     * Actualiza producto y sus relaciones de categorías.
-     */
     public function update($id, $data)
     {
         $sql = "UPDATE productos
-                SET nombre      = :nombre,
+                SET nombre = :nombre,
                     descripcion = :descripcion,
-                    precio      = :precio,
-                    stock       = :stock,
-                    imagenes    = :imagenes
+                    precio = :precio,
+                    stock = :stock,
+                    imagenes = :imagenes
                 WHERE id = :id";
         $this->execute($sql, [
             ":nombre"      => $data['nombre'],
-            ":descripcion" => $data['descripcion'],
+            ":descripcion" => $data['descripcion'] ?? null,
             ":precio"      => $data['precio'],
             ":stock"       => $data['stock'],
-            ":imagenes"    => $data['imagenes'],
+            ":imagenes"    => $this->prepararImagenes($data['imagenes'] ?? null),
             ":id"          => $id
         ]);
 
-        // Reemplazar relaciones de categorías si se envían
         if (isset($data['categoriaIds']) && is_array($data['categoriaIds'])) {
-            // Eliminar relaciones actuales
-            $this->execute("DELETE FROM producto_categorias WHERE producto_id = :pid", [":pid" => $id]);
-            // Insertar las nuevas
-            $sqlCat = "INSERT INTO producto_categorias (producto_id, categoria_id) VALUES (:pid, :cid)";
-            foreach ($data['categoriaIds'] as $catId) {
-                $stidCat = oci_parse($this->conn, $sqlCat);
-                oci_bind_by_name($stidCat, ":pid", $id);
-                oci_bind_by_name($stidCat, ":cid", $catId);
-                oci_execute($stidCat);
-            }
+            $this->reemplazarRelaciones($id, 'producto_categorias', 'categoria_id', $data['categoriaIds']);
+        }
+
+        if (isset($data['temporadaIds']) && is_array($data['temporadaIds'])) {
+            $this->reemplazarRelaciones($id, 'producto_temporadas', 'temporada_id', $data['temporadaIds']);
         }
 
         return true;
@@ -191,10 +209,11 @@ class Producto extends BaseModel
 
     public function delete($id)
     {
-
         $this->execute("DELETE FROM producto_categorias WHERE producto_id = :pid", [":pid" => $id]);
+        $this->execute("DELETE FROM producto_temporadas WHERE producto_id = :pid", [":pid" => $id]);
         $sql = "DELETE FROM productos WHERE id = :id";
         $this->execute($sql, [":id" => $id]);
+
         return true;
     }
 }

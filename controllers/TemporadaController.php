@@ -2,21 +2,23 @@
 require_once __DIR__ . '/../models/Temporada.php';
 require_once __DIR__ . '/../core/Response.php';
 
-class TemporadaController {
-
+class TemporadaController
+{
     private $model;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->model = new Temporada();
     }
 
-    public function index() {
+    public function index()
+    {
         $data = $this->model->getAll();
-
         Response::success($data, "Temporadas obtenidas");
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $data = $this->model->getById($id);
 
         if (!$data) {
@@ -26,11 +28,12 @@ class TemporadaController {
         Response::success($data, "Temporada obtenida");
     }
 
-    public function store() {
+    public function store()
+    {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (!$data || !isset($data['nombre'])) {
-            Response::error("Datos inválidos", 400);
+        if (!$data || !isset($data['nombre'], $data['fechaInicio'], $data['fechaFin'])) {
+            Response::error("Datos invalidos", 400);
         }
 
         $this->model->create($data);
@@ -38,11 +41,12 @@ class TemporadaController {
         Response::success(null, "Temporada creada", 201);
     }
 
-    public function update($id) {
+    public function update($id)
+    {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (!$data) {
-            Response::error("Datos inválidos", 400);
+        if (!$data || !isset($data['nombre'], $data['fechaInicio'], $data['fechaFin'])) {
+            Response::error("Datos invalidos", 400);
         }
 
         $this->model->update($id, $data);
@@ -50,7 +54,8 @@ class TemporadaController {
         Response::success(null, "Temporada actualizada");
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         $this->model->delete($id);
 
         Response::success(null, "Temporada eliminada");

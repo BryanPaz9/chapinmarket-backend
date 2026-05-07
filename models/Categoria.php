@@ -6,7 +6,7 @@ class Categoria extends BaseModel
 
     public function getAll()
     {
-        $sql = "SELECT * FROM categorias";
+        $sql = "SELECT * FROM categorias ORDER BY NVL(padre_id, 0), nombre";
         $stid = $this->execute($sql);
 
         $data = [];
@@ -28,12 +28,13 @@ class Categoria extends BaseModel
 
     public function create($data)
     {
-        $sql = "INSERT INTO categorias (nombre, padre_id)
-                VALUES (:nombre, :padre_id)";
+        $sql = "INSERT INTO categorias (nombre, padre_id, icono)
+                VALUES (:nombre, :padre_id, :icono)";
 
         $this->execute($sql, [
             ":nombre" => $data['nombre'],
-            ":padre_id" => $data['padre_id']
+            ":padre_id" => $data['padreId'] ?? $data['padre_id'] ?? null,
+            ":icono" => $data['icono'] ?? null
         ]);
 
         return true;
@@ -43,12 +44,14 @@ class Categoria extends BaseModel
     {
         $sql = "UPDATE categorias
                 SET nombre = :nombre,
-                    padre_id = :padre_id
+                    padre_id = :padre_id,
+                    icono = :icono
                 WHERE id = :id";
 
         $this->execute($sql, [
             ":nombre" => $data['nombre'],
-            ":padre_id" => $data['padre_id'],
+            ":padre_id" => $data['padreId'] ?? $data['padre_id'] ?? null,
+            ":icono" => $data['icono'] ?? null,
             ":id" => $id
         ]);
 
