@@ -86,7 +86,7 @@ class Pedido extends BaseModel
             'fecha' => $pedidoRow['FECHA'],
             'total' => (float)$pedidoRow['TOTAL'],
             'subtotalItems' => $subtotalItems,
-            'estado' => $pedidoRow['ESTADO'] ?? 'pendiente',
+            'estado' => $pedidoRow['ESTADO'] ?? 'enviado',
             'metodoPago' => 'Tarjeta',
             'direccionEnvio' => $pedidoRow['DIRECCION_ENVIO'] ?? '',
             'cantidadItems' => (int)$pedidoRow['CANTIDAD_ITEMS'],
